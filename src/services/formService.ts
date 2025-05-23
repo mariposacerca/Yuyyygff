@@ -35,21 +35,18 @@ export const submitFormData = async (formData: any): Promise<{ success: boolean;
       }
     });
 
-    // Check content type to ensure we're getting JSON
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      throw new Error('Server returned non-JSON response');
-    }
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Error al enviar el formulario');
-    }
-
-    const result = await response.json();
+    let result;
+    const responseText = await response.text();
     
-    if (!result.success) {
-      throw new Error(result.error || 'Error al procesar la solicitud');
+    try {
+      result = JSON.parse(responseText);
+    } catch (e) {
+      console.error('Server response:', responseText);
+      throw new Error('Server returned invalid JSON response');
+    }
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Error al procesar la solicitud');
     }
 
     return { 

