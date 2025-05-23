@@ -2,11 +2,15 @@
 // Ensure this is at the very top of the file
 error_reporting(E_ALL);
 ini_set('display_errors', 0); // Disable error display, but still log them
+ini_set('log_errors', 1);
+
+// Prevent any output before headers
+ob_start();
 
 // Set headers to handle CORS and content type
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Accept");
+header("Access-Control-Allow-Headers: Content-Type, Accept, X-Requested-With");
 header("Content-Type: application/json");
 
 // Handle preflight OPTIONS request
@@ -91,13 +95,19 @@ try {
         throw new Exception('Failed to save data to file');
     }
 
+    // Clear any buffered output before sending response
+    ob_clean();
+
     // Return success response
     http_response_code(200);
     echo json_encode(['success' => true, 'message' => 'Solicitud guardada exitosamente']);
 
 } catch (Exception $e) {
+    // Clear any buffered output before sending error response
+    ob_clean();
+    
     error_log("Error saving form data: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    echo json_encode(['success' => false, 'error' => 'Error interno del servidor']);
     exit();
 }

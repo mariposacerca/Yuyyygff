@@ -30,9 +30,16 @@ export const submitFormData = async (formData: any): Promise<{ success: boolean;
       method: 'POST',
       body: form,
       headers: {
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
       }
     });
+
+    // Check content type to ensure we're getting JSON
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error('Server returned non-JSON response');
+    }
 
     if (!response.ok) {
       const errorData = await response.json();
