@@ -28,18 +28,26 @@ export const submitFormData = async (formData: any): Promise<{ success: boolean;
     // Submit the form to the PHP endpoint
     const response = await fetch('/save-form.php', {
       method: 'POST',
-      body: form
+      body: form,
+      headers: {
+        'Accept': 'application/json'
+      }
     });
 
     if (!response.ok) {
-      throw new Error('Error al enviar el formulario');
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Error al enviar el formulario');
     }
 
     const result = await response.json();
     
+    if (!result.success) {
+      throw new Error(result.error || 'Error al procesar la solicitud');
+    }
+
     return { 
       success: true, 
-      message: 'Solicitud procesada exitosamente'
+      message: result.message || 'Solicitud procesada exitosamente'
     };
   } catch (error) {
     console.error('Error submitting form:', error);

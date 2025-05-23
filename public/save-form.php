@@ -1,12 +1,12 @@
 <?php
 // Ensure this is at the very top of the file
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0); // Disable error display, but still log them
 
 // Set headers to handle CORS and content type
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Headers: Content-Type, Accept");
 header("Content-Type: application/json");
 
 // Handle preflight OPTIONS request
